@@ -1,6 +1,9 @@
 #scrapp.py
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+import time
 from bs4 import BeautifulSoup
+
 
 
 class Scrapp:
@@ -8,16 +11,47 @@ class Scrapp:
         self.driver = webdriver.Chrome()
         self.url = url
         self.cantidad_paginas=cantidad_paginas
+        self.__html_raw = " "
+
+    def call(self)->None:
+        self.driver.get(self.url) #vamos a la pagina
+        time.sleep(10)
+        button = self.driver.find_element(By.ID, "onetrust-reject-all-handler")                       
+        if button.is_displayed(): # Comprueba si el botón está visible
+            button.click()
+
+
+    def busqueda(self):
+    
+        table = self.driver.find_element(By.TAG_NAME, "table")
+        self.driver.execute_script("arguments[0].scrollIntoView();", table)
+        self.__html_raw = table.get_attribute("outerHTML")
+
 
     def get_data(self):
-        self.driver.get(self.url)
-        # Obtenemos el código fuente de la página
-        page_source = self.driver.page_source
-        # Creamos un objeto BeautifulSoup para analizar el código fuente
-        soup = BeautifulSoup(page_source, "html.parser")
-        print(soup)
+        soup = BeautifulSoup(self.__html_raw, "html.parser") #codigo fuente con selenium
+        trs = soup.find_all("tr", class_="css-1cxc880")
+        print(len(trs))
+        
+        trs = soup.select("tr.css-1cxc880")
+
+        for tr in trs:
+    # Obtiene el elemento <td> con la clase "css-1sem0fc"
+            td = tr.find("td", class_="css-1sem0fc")
+
+            print(td.text)
+    # Obtiene el texto del elemento <td>
+
+
+
+        #soup = BeautifulSoup(page_source, "html.parser") #parser de la pagina
+        #print(type(soup))
+        #time.sleep(500)
+        #print(soup)
 
 if __name__== '__main__':
     prueba = Scrapp('https://crypto.com/price',10)
+    prueba.call()
+    prueba.busqueda()
     prueba.get_data()
     
