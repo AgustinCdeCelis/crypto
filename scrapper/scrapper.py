@@ -12,6 +12,8 @@ class Scrapp:
         self.url = url
         self.cantidad_paginas=cantidad_paginas
         self.__html_raw = " "
+        self.raw_data = []
+
 
     def call(self)->None:
         self.driver.get(self.url) #vamos a la pagina
@@ -31,23 +33,28 @@ class Scrapp:
     def get_data(self):
         soup = BeautifulSoup(self.__html_raw, "html.parser") #codigo fuente con selenium
         trs = soup.find_all("tr", class_="css-1cxc880")
-        print(len(trs))
-        
-        trs = soup.select("tr.css-1cxc880")
-
-        for tr in trs:
-    # Obtiene el elemento <td> con la clase "css-1sem0fc"
+         
+        for tr in trs: 
+            row_data ={}
             td = tr.find("td", class_="css-1sem0fc")
+            row_data['nombre'] =td.find('p').text #primer valor
+            row_data['siglas'] = td.find('span').text #segundo valor
+            
+            td2 = tr.find('td',class_='css-1m7ejhk')
+            row_data['precio'] = td2.find('p').text
+            td3 = tr.find('td',class_='css-vtw5vj')
+            row_data['24hs_change'] = td3.find('p').text #cuarto valor
+            row_data['24hs_volume']=tr.find('td',class_='css-15lyn3l').text
+            row_data['market_cap'] =tr.find('td',class_='css-15lyn3l').text
 
-            print(td.text)
-    # Obtiene el texto del elemento <td>
+            self.raw_data.append(row_data)
+            
+        print(self.raw_data)    
+            # Separa el texto en dos partes
+            
 
-
-
-        #soup = BeautifulSoup(page_source, "html.parser") #parser de la pagina
-        #print(type(soup))
-        #time.sleep(500)
-        #print(soup)
+            
+    
 
 if __name__== '__main__':
     prueba = Scrapp('https://crypto.com/price',10)
