@@ -1,4 +1,3 @@
-#scrapp.py
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -11,7 +10,7 @@ import time
 __all__=['Scrapp']
 
 class Scrapp:
-    url =  'https://crypto.com/price' #url principal
+    url = 'https://crypto.com/price'#url principal
     def __init__(self,cantidad_paginas:int=10) -> None:
         self.driver = webdriver.Chrome()
         self.cantidad_paginas=cantidad_paginas
@@ -20,9 +19,14 @@ class Scrapp:
         self.raw_data = [] #lista de tablas
         self.continuar= False
         self.current_url = '' #cada pagina en la que va pasando
+        
+
+    def __repr__(self) -> str:
+        return f'-----Crypto-cantidad de paginas {self.cantidad_paginas}-----'
 
 
     def call(self)->None:
+        
         if self.pagina !=1:
             self.driver.get(self.current_url)
         else:
@@ -30,17 +34,18 @@ class Scrapp:
             time.sleep(10)
             button = self.driver.find_element(By.ID, "onetrust-reject-all-handler")                       
             if button.is_displayed(): # Comprueba si el botón está visible
-             button.click()
+                button.click()
 
 
     def busqueda(self)->None:
     
         table = self.driver.find_element(By.TAG_NAME, "table") #busco tabla
         self.driver.execute_script("arguments[0].scrollIntoView();", table)
-        self.__html_raw = table.get_attribute("outerHTML")
+        self.__html_raw += table.get_attribute("outerHTML")
 
 
     def get_data(self)->None:
+        
         soup = BeautifulSoup(self.__html_raw, "html.parser") #codigo fuente con selenium
         trs = soup.find_all("tr", class_="css-1cxc880") #estos son las filas de la tabla
         for tr in trs: 
@@ -68,48 +73,44 @@ class Scrapp:
     def next(self)->bool:
         if self.pagina < self.cantidad_paginas:
             self.pagina+=1
-            add_str=f'?page{self.pagina}'
+            add_str=f'?page={self.pagina}'
             self.current_url = self.url +add_str
             elements = self.driver.find_elements(By.CSS_SELECTOR,'button.chakra-button.css-1c62rym')
-            
-            # Find the specific element whose text matches the current page number
-            element = next((el for el in elements if el.text == str(self.pagina)), None)
-
-            actions = ActionChains(self.driver)
-            actions.move_to_element(element).perform()
-            element.click()
-            time.sleep(5)
-        else:
-            print('finalizado')
-            self.driver.quit()
-
-            
+            try:
+                element = next((el for el in elements if el.text == str(self.pagina)))
+                actions = ActionChains(self.driver)
+                actions.move_to_element(element).perform()
+                element.click()
+                time.sleep(5)
+            except StopIteration:
+                print(f"Page button {self.pagina} not found.")
+        
+                self.driver.quit() 
 
         return self.current_url
     
-    
         
-            
 def test():
     start_time = time.perf_counter()
     
-    prueba = Scrapp(10)
-    while prueba.continuar:
+    prueba = Scrapp(20)
+    print(prueba)
+
+    for pagina in range(prueba.cantidad_paginas):
         prueba.call()
         prueba.busqueda()
-        prueba.get_data()
-        prueba.transform()
         prueba.next()
-        prueba.continuar = prueba.next()
-
+        
+    
+    prueba.get_data()
+    prueba.transform()
     end_time = time.perf_counter()    
     execution_time = end_time - start_time
-    
-    
     print(f"Execution time: {execution_time:.4f} seconds")
             
     
 
 if __name__== '__main__':
     test()
-    
+
+ 
