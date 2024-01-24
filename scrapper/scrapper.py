@@ -101,7 +101,6 @@ def test():
         prueba.busqueda()
         prueba.next()
         
-    
     prueba.get_data()
     prueba.transform()
     end_time = time.perf_counter()    
